@@ -15,6 +15,7 @@ import traceback
 
 from supervisor.compat import syslog
 from supervisor.compat import long
+from supervisor.compat import is_text_stream
 
 class LevelsByName:
     CRIT = 50   # messages that probably require immediate user attention
@@ -89,15 +90,20 @@ class Handler:
             binary = (self.fmt == '%(message)s' and
                       isinstance(record.msg, bytes) and
                       (not record.kw or record.kw == {'exc_info': None}))
+            binary_stream = not is_text_stream(self.stream)
             if binary:
                 msg = record.msg
             else:
                 msg = self.fmt % record.asdict()
+                if binary_stream:
+                    msg = msg.encode('utf-8')
             try:
                 self.stream.write(msg)
             except UnicodeError:
-                if not binary:
-                    msg = msg.encode('utf-8')
+                # TODO sort out later
+                # this only occurs because of a test stream type
+                # which deliberately raises an exception the first
+                # time it's called. So just do it again
                 self.stream.write(msg)
             self.flush()
         except:
