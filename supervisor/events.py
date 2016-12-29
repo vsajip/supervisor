@@ -1,4 +1,3 @@
-from supervisor.compat import as_bytes
 from supervisor.states import getProcessStateDescription
 
 callbacks = []
@@ -46,8 +45,8 @@ class ProcessLogStderrEvent(ProcessLogEvent):
 class ProcessCommunicationEvent(Event):
     """ Abstract """
     # event mode tokens
-    BEGIN_TOKEN = as_bytes('<!--XSUPERVISOR:BEGIN-->')
-    END_TOKEN   = as_bytes('<!--XSUPERVISOR:END-->')
+    BEGIN_TOKEN = b'<!--XSUPERVISOR:BEGIN-->'
+    END_TOKEN   = b'<!--XSUPERVISOR:END-->'
 
     def __init__(self, process, pid, data):
         self.process = process
