@@ -28,7 +28,7 @@ else: # pragma: no cover
 
     def is_text_stream(stream):
         # TODO sort out for Python 2.4, 2.5 and 2.6 when a stream is
-        # opened using plain open() or codes.open() rather than io.open()
+        # opened using plain open() or codecs.open() rather than io.open()
         try:
             import _io
             return isinstance(stream, _io._TextIOBase)

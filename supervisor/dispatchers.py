@@ -2,7 +2,6 @@ import warnings
 import errno
 from supervisor.medusa.asyncore_25 import compact_traceback
 
-from supervisor.compat import as_bytes
 from supervisor.events import notify
 from supervisor.events import EventRejectedEvent
 from supervisor.events import ProcessLogStderrEvent
