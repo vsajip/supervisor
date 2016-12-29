@@ -2,6 +2,7 @@ import warnings
 import errno
 from supervisor.medusa.asyncore_25 import compact_traceback
 
+from supervisor.compat import as_bytes
 from supervisor.events import notify
 from supervisor.events import EventRejectedEvent
 from supervisor.events import ProcessLogStderrEvent
@@ -83,7 +84,7 @@ class POutputDispatcher(PDispatcher):
     mainlog = None #  the process' "normal" logger
     capturelog = None # the logger while we're in capturemode
     childlog = None # the current logger (event or main)
-    output_buffer = '' # data waiting to be logged
+    output_buffer = b'' # data waiting to be logged
 
     def __init__(self, process, event_type, fd):
         """
@@ -171,10 +172,17 @@ class POutputDispatcher(PDispatcher):
             if self.childlog:
                 self.childlog.info(data)
             if self.log_to_mainlog:
+                if not isinstance(data, bytes):
+                    text = data
+                else:
+                    try:
+                        text = data.decode('utf-8')
+                    except UnicodeDecodeError:
+                        text = 'Undecodable: %r' % data
                 msg = '%(name)r %(channel)s output:\n%(data)s'
                 config.options.logger.log(
                     self.mainlog_level, msg, name=config.name,
-                    channel=self.channel, data=data)
+                    channel=self.channel, data=text)
             if self.channel == 'stdout':
                 if self.stdout_events_enabled:
                     notify(
@@ -192,7 +200,7 @@ class POutputDispatcher(PDispatcher):
         if self.capturelog is None:
             # shortcut trying to find capture data
             data = self.output_buffer
-            self.output_buffer = ''
+            self.output_buffer = b''
             self._log(data)
             return
 
@@ -205,7 +213,7 @@ class POutputDispatcher(PDispatcher):
             return # not enough data
 
         data = self.output_buffer
-        self.output_buffer = ''
+        self.output_buffer = b''
 
         try:
             before, after = data.split(token, 1)

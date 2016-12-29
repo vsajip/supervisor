@@ -1,3 +1,4 @@
+from io import BytesIO
 import sys
 import time
 import unittest
@@ -49,23 +50,23 @@ class ChildUtilsTests(unittest.TestCase):
 class TestProcessCommunicationsProtocol(unittest.TestCase):
     def test_send(self):
         from supervisor.childutils import pcomm
-        stdout = StringIO()
-        pcomm.send('hello', stdout)
+        stdout = BytesIO()
+        pcomm.send(b'hello', stdout)
         from supervisor.events import ProcessCommunicationEvent
         begin = ProcessCommunicationEvent.BEGIN_TOKEN
         end = ProcessCommunicationEvent.END_TOKEN
-        self.assertEqual(stdout.getvalue(), '%s%s%s' % (begin, 'hello', end))
+        self.assertEqual(stdout.getvalue(), begin + b'hello' + end)
 
     def test_stdout(self):
         from supervisor.childutils import pcomm
         old = sys.stdout
         try:
-            io = sys.stdout = StringIO()
-            pcomm.stdout('hello')
+            io = sys.stdout = BytesIO()
+            pcomm.stdout(b'hello')
             from supervisor.events import ProcessCommunicationEvent
             begin = ProcessCommunicationEvent.BEGIN_TOKEN
             end = ProcessCommunicationEvent.END_TOKEN
-            self.assertEqual(io.getvalue(), '%s%s%s' % (begin, 'hello', end))
+            self.assertEqual(io.getvalue(), begin + b'hello' + end)
         finally:
             sys.stdout = old
 
@@ -73,12 +74,12 @@ class TestProcessCommunicationsProtocol(unittest.TestCase):
         from supervisor.childutils import pcomm
         old = sys.stderr
         try:
-            io = sys.stderr = StringIO()
-            pcomm.stderr('hello')
+            io = sys.stderr = BytesIO()
+            pcomm.stderr(b'hello')
             from supervisor.events import ProcessCommunicationEvent
             begin = ProcessCommunicationEvent.BEGIN_TOKEN
             end = ProcessCommunicationEvent.END_TOKEN
-            self.assertEqual(io.getvalue(), '%s%s%s' % (begin, 'hello', end))
+            self.assertEqual(io.getvalue(), begin + b'hello' + end)
         finally:
             sys.stderr = old
 

@@ -1,10 +1,11 @@
+from supervisor.compat import as_bytes
 from supervisor.states import getProcessStateDescription
 
 callbacks = []
 
 def subscribe(type, callback):
     callbacks.append((type, callback))
-    
+
 def notify(event):
     for type, callback in callbacks:
         if isinstance(event, type):
@@ -45,8 +46,8 @@ class ProcessLogStderrEvent(ProcessLogEvent):
 class ProcessCommunicationEvent(Event):
     """ Abstract """
     # event mode tokens
-    BEGIN_TOKEN = '<!--XSUPERVISOR:BEGIN-->'
-    END_TOKEN   = '<!--XSUPERVISOR:END-->'
+    BEGIN_TOKEN = as_bytes('<!--XSUPERVISOR:BEGIN-->')
+    END_TOKEN   = as_bytes('<!--XSUPERVISOR:END-->')
 
     def __init__(self, process, pid, data):
         self.process = process
@@ -88,7 +89,7 @@ class SupervisorRunningEvent(SupervisorStateChangeEvent):
 class SupervisorStoppingEvent(SupervisorStateChangeEvent):
     pass
 
-class EventRejectedEvent: # purposely does not subclass Event 
+class EventRejectedEvent: # purposely does not subclass Event
     def __init__(self, process, event):
         self.process = process
         self.event = event
@@ -198,7 +199,7 @@ class EventTypes:
     PROCESS_COMMUNICATION_STDERR = ProcessCommunicationStderrEvent
     PROCESS_LOG = ProcessLogEvent
     PROCESS_LOG_STDOUT = ProcessLogStdoutEvent
-    PROCESS_LOG_STDERR = ProcessLogStderrEvent     
+    PROCESS_LOG_STDERR = ProcessLogStderrEvent
     REMOTE_COMMUNICATION = RemoteCommunicationEvent
     SUPERVISOR_STATE_CHANGE = SupervisorStateChangeEvent # abstract
     SUPERVISOR_STATE_CHANGE_RUNNING = SupervisorRunningEvent

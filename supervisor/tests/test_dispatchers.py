@@ -2,6 +2,8 @@ import unittest
 import os
 import sys
 
+from supervisor.compat import as_bytes
+
 from supervisor.tests.base import DummyOptions
 from supervisor.tests.base import DummyProcess
 from supervisor.tests.base import DummyPConfig
@@ -88,24 +90,24 @@ class POutputDispatcherTests(unittest.TestCase):
 
     def test_handle_read_event(self):
         options = DummyOptions()
-        options.readfd_result = 'abc'
+        options.readfd_result = b'abc'
         config = DummyPConfig(options, 'process1', '/bin/process1',
                               stdout_capture_maxbytes=100)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process)
         self.assertEqual(dispatcher.handle_read_event(), None)
-        self.assertEqual(dispatcher.output_buffer, 'abc')
+        self.assertEqual(dispatcher.output_buffer, b'abc')
 
     def test_handle_read_event_no_data_closes(self):
         options = DummyOptions()
-        options.readfd_result = ''
+        options.readfd_result = b''
         config = DummyPConfig(options, 'process1', '/bin/process1',
                               stdout_capture_maxbytes=100)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process)
         self.assertFalse(dispatcher.closed)
         self.assertEqual(dispatcher.handle_read_event(), None)
-        self.assertEqual(dispatcher.output_buffer, '')
+        self.assertEqual(dispatcher.output_buffer, b'')
         self.assertTrue(dispatcher.closed)
 
     def test_handle_error(self):
@@ -180,7 +182,7 @@ class POutputDispatcherTests(unittest.TestCase):
         self.assertEqual(dispatcher.childlog.data, ['a'])
         self.assertEqual(options.logger.data[0],
              "'process1' stdout output:\na")
-        self.assertEqual(dispatcher.output_buffer, '')
+        self.assertEqual(dispatcher.output_buffer, b'')
 
     def test_record_output_emits_stdout_event_when_enabled(self):
         options = DummyOptions()
@@ -188,7 +190,7 @@ class POutputDispatcherTests(unittest.TestCase):
                               stdout_events_enabled=True)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process, 'stdout')
-        dispatcher.output_buffer = 'hello from stdout'
+        dispatcher.output_buffer = b'hello from stdout'
 
         L = []
         def doit(event):
@@ -200,7 +202,7 @@ class POutputDispatcherTests(unittest.TestCase):
         self.assertEqual(len(L), 1)
         event = L[0]
         self.assertEqual(event.process, process)
-        self.assertEqual(event.data, 'hello from stdout')
+        self.assertEqual(event.data, b'hello from stdout')
 
     def test_record_output_does_not_emit_stdout_event_when_disabled(self):
         options = DummyOptions()
@@ -208,7 +210,7 @@ class POutputDispatcherTests(unittest.TestCase):
                               stdout_events_enabled=False)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process, 'stdout')
-        dispatcher.output_buffer = 'hello from stdout'
+        dispatcher.output_buffer = b'hello from stdout'
 
         L = []
         def doit(event):
@@ -225,7 +227,7 @@ class POutputDispatcherTests(unittest.TestCase):
                               stderr_events_enabled=True)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process, 'stderr')
-        dispatcher.output_buffer = 'hello from stderr'
+        dispatcher.output_buffer = b'hello from stderr'
 
         L = []
         def doit(event):
@@ -237,7 +239,7 @@ class POutputDispatcherTests(unittest.TestCase):
         self.assertEqual(len(L), 1)
         event = L[0]
         self.assertEqual(event.process, process)
-        self.assertEqual(event.data, 'hello from stderr')
+        self.assertEqual(event.data, b'hello from stderr')
 
     def test_record_output_does_not_emit_stderr_event_when_disabled(self):
         options = DummyOptions()
@@ -245,7 +247,7 @@ class POutputDispatcherTests(unittest.TestCase):
                               stderr_events_enabled=False)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process, 'stderr')
-        dispatcher.output_buffer = 'hello from stderr'
+        dispatcher.output_buffer = b'hello from stderr'
 
         L = []
         def doit(event):
@@ -268,10 +270,10 @@ class POutputDispatcherTests(unittest.TestCase):
                               stdout_capture_maxbytes=100)
         process = DummyProcess(config)
         dispatcher = self._makeOne(process)
-        dispatcher.output_buffer = 'stdout string longer than a token'
+        dispatcher.output_buffer = b'stdout string longer than a token'
         dispatcher.record_output()
         self.assertEqual(dispatcher.childlog.data,
-                         ['stdout string longer than a token'])
+                         [b'stdout string longer than a token'])
         self.assertEqual(options.logger.data[0],
              "'process1' stdout output:\nstdout string longer than a token")
 
@@ -301,7 +303,7 @@ class POutputDispatcherTests(unittest.TestCase):
         subscribe(ProcessCommunicationEvent, doit)
         BEGIN_TOKEN = ProcessCommunicationEvent.BEGIN_TOKEN
         END_TOKEN = ProcessCommunicationEvent.END_TOKEN
-        data = BEGIN_TOKEN + 'hello' + END_TOKEN
+        data = BEGIN_TOKEN + b'hello' + END_TOKEN
         options = DummyOptions()
         from supervisor.loggers import getLogger
         options.getLogger = getLogger # actually use real logger
@@ -324,7 +326,7 @@ class POutputDispatcherTests(unittest.TestCase):
             self.assertEqual(event.__class__, ProcessCommunicationStdoutEvent)
             self.assertEqual(event.process, process)
             self.assertEqual(event.channel, 'stdout')
-            self.assertEqual(event.data, 'hello')
+            self.assertEqual(event.data, b'hello')
 
         finally:
             try:
@@ -343,16 +345,17 @@ class POutputDispatcherTests(unittest.TestCase):
         subscribe(ProcessCommunicationEvent, doit)
         import string
         # ascii_letters for python 3
-        letters = getattr(string, "letters", string.ascii_letters)
-        digits = string.digits * 4
+        letters = as_bytes(getattr(string, "letters", string.ascii_letters))
+        digits = as_bytes(string.digits) * 4
         BEGIN_TOKEN = ProcessCommunicationEvent.BEGIN_TOKEN
         END_TOKEN = ProcessCommunicationEvent.END_TOKEN
         data = (letters +  BEGIN_TOKEN + digits + END_TOKEN + letters)
 
         # boundaries that split tokens
-        broken = data.split(':')
-        first = broken[0] + ':'
-        second = broken[1] + ':'
+        colon = b':'
+        broken = data.split(colon)
+        first = broken[0] + colon
+        second = broken[1] + colon
         third = broken[2]
 
         options = DummyOptions()
@@ -368,7 +371,7 @@ class POutputDispatcherTests(unittest.TestCase):
             dispatcher.output_buffer = first
             dispatcher.record_output()
             [ x.flush() for x in dispatcher.childlog.handlers ]
-            with open(logfile, 'r') as f:
+            with open(logfile, 'rb') as f:
                 self.assertEqual(f.read(), letters)
             self.assertEqual(dispatcher.output_buffer, first[len(letters):])
             self.assertEqual(len(events), 0)
@@ -377,7 +380,7 @@ class POutputDispatcherTests(unittest.TestCase):
             dispatcher.record_output()
             self.assertEqual(len(events), 0)
             [ x.flush() for x in dispatcher.childlog.handlers ]
-            with open(logfile, 'r') as f:
+            with open(logfile, 'rb') as f:
                 self.assertEqual(f.read(), letters)
             self.assertEqual(dispatcher.output_buffer, first[len(letters):])
             self.assertEqual(len(events), 0)
@@ -385,7 +388,7 @@ class POutputDispatcherTests(unittest.TestCase):
             dispatcher.output_buffer += third
             dispatcher.record_output()
             [ x.flush() for x in dispatcher.childlog.handlers ]
-            with open(logfile, 'r') as f:
+            with open(logfile, 'rb') as f:
                 self.assertEqual(f.read(), letters * 2)
             self.assertEqual(len(events), 1)
             event = events[0]

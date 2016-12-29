@@ -1522,7 +1522,7 @@ class ServerOptions(Options):
             if why.args[0] not in (errno.EWOULDBLOCK, errno.EBADF, errno.EINTR):
                 raise
             data = ''
-        return as_string(data)
+        return data
 
     def process_environment(self):
         os.environ.update(self.environment or {})
