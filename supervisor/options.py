@@ -1521,7 +1521,7 @@ class ServerOptions(Options):
         except OSError as why:
             if why.args[0] not in (errno.EWOULDBLOCK, errno.EBADF, errno.EINTR):
                 raise
-            data = ''
+            data = b''
         return data
 
     def process_environment(self):
