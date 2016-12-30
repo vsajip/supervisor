@@ -3,6 +3,7 @@ import sys
 import time
 import unittest
 from supervisor.compat import StringIO
+from supervisor.compat import as_string
 
 class ChildUtilsTests(unittest.TestCase):
     def test_getRPCInterface(self):
@@ -101,7 +102,7 @@ class TestEventListenerProtocol(unittest.TestCase):
     def test_token(self):
         from supervisor.childutils import listener
         from supervisor.dispatchers import PEventListenerDispatcher
-        token = PEventListenerDispatcher.READY_FOR_EVENTS_TOKEN
+        token = as_string(PEventListenerDispatcher.READY_FOR_EVENTS_TOKEN)
         stdout = StringIO()
         listener.ready(stdout)
         self.assertEqual(stdout.getvalue(), token)
@@ -109,7 +110,7 @@ class TestEventListenerProtocol(unittest.TestCase):
     def test_ok(self):
         from supervisor.childutils import listener
         from supervisor.dispatchers import PEventListenerDispatcher
-        begin = PEventListenerDispatcher.RESULT_TOKEN_START
+        begin = as_string(PEventListenerDispatcher.RESULT_TOKEN_START)
         stdout = StringIO()
         listener.ok(stdout)
         self.assertEqual(stdout.getvalue(), begin + '2\nOK')
@@ -117,7 +118,7 @@ class TestEventListenerProtocol(unittest.TestCase):
     def test_fail(self):
         from supervisor.childutils import listener
         from supervisor.dispatchers import PEventListenerDispatcher
-        begin = PEventListenerDispatcher.RESULT_TOKEN_START
+        begin = as_string(PEventListenerDispatcher.RESULT_TOKEN_START)
         stdout = StringIO()
         listener.fail(stdout)
         self.assertEqual(stdout.getvalue(), begin + '4\nFAIL')
@@ -125,7 +126,7 @@ class TestEventListenerProtocol(unittest.TestCase):
     def test_send(self):
         from supervisor.childutils import listener
         from supervisor.dispatchers import PEventListenerDispatcher
-        begin = PEventListenerDispatcher.RESULT_TOKEN_START
+        begin = as_string(PEventListenerDispatcher.RESULT_TOKEN_START)
         stdout = StringIO()
         msg = 'the body data ya fool\n'
         listener.send(msg, stdout)
