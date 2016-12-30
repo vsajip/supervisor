@@ -49,6 +49,7 @@ you - by calling your self.found_terminator() method.
 import socket
 from supervisor.medusa import asyncore_25 as asyncore
 from supervisor.compat import long
+from supervisor.compat import as_bytes
 
 class async_chat (asyncore.dispatcher):
     """This is an abstract class.  You must derive from this class, and add
@@ -99,7 +100,8 @@ class async_chat (asyncore.dispatcher):
         # combos with a single recv(1024).
 
         while self.ac_in_buffer:
-            lb = len(self.ac_in_buffer)
+            # Need to compute the length in bytes
+            lb = len(as_bytes(self.ac_in_buffer))
             terminator = self.get_terminator()
             if not terminator:
                 # no terminator, collect it all

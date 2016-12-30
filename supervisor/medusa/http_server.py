@@ -12,6 +12,8 @@ import socket
 import sys
 import time
 
+from supervisor.compat import as_bytes
+
 # async modules
 import supervisor.medusa.asyncore_25 as asyncore
 import supervisor.medusa.asynchat_25 as asynchat
@@ -520,7 +522,9 @@ class http_channel (asynchat.async_chat):
     def recv (self, buffer_size):
         try:
             result = asynchat.async_chat.recv (self, buffer_size)
-            self.server.bytes_in.increment (len(result))
+            # The result is in text, and the bytes are not always the same size ...
+            byte_length = len(as_bytes(result))
+            self.server.bytes_in.increment(byte_length)
             self.last_used = int (time.time())
             return result
         except MemoryError:
