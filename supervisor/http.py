@@ -371,7 +371,8 @@ class deferring_http_channel(http_server.http_channel):
                         self.producer_fifo.pop()
                         self.close()
                     return
-                elif isinstance(p, str):
+                else:
+                    assert isinstance(p, bytes)
                     self.producer_fifo.pop()
                     self.ac_out_buffer += p
                     return

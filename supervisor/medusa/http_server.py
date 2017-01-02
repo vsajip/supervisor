@@ -262,11 +262,9 @@ class http_request:
                     )
 
     def push (self, thing):
-        if type(thing) == type(''):
-            self.outgoing.append(producers.simple_producer(thing,
-              buffer_size=len(thing)))
-        else:
-            self.outgoing.append(thing)
+        assert isinstance(thing, bytes)
+        thing = producers.simple_producer(thing, buffer_size=len(thing))
+        self.outgoing.append(thing)
 
     def response (self, code=200):
         message = self.responses[code]

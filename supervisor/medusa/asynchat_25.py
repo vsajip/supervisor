@@ -196,10 +196,12 @@ class async_chat (asyncore.dispatcher):
                         self.producer_fifo.pop()
                         self.close()
                     return
-                elif isinstance(p, str):
+                else:
+                    assert isinstance(p, bytes)
                     self.producer_fifo.pop()
                     self.ac_out_buffer += p
                     return
+
                 data = p.more()
                 if data:
                     self.ac_out_buffer = self.ac_out_buffer + data
