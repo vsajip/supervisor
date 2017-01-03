@@ -530,6 +530,10 @@ class SupervisorTransport(xmlrpclib.Transport):
                                           r.reason,
                                           '' )
         data = r.read()
+        data = as_string(data)
+        # on 2.x, the Expat parser doesn't like Unicode which actually
+        # contains non-ASCII characters
+        data = data.encode('ascii', 'xmlcharrefreplace')
         p, u = self.getparser()
         p.feed(data)
         p.close()
