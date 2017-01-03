@@ -427,7 +427,7 @@ class supervisor_xmlrpc_handler(xmlrpc_handler):
                 # if we get anything but a function, it implies that this
                 # response doesn't need to be deferred, we can service it
                 # right away.
-                body = xmlrpc_marshal(value)
+                body = as_bytes(xmlrpc_marshal(value))
                 request['Content-Type'] = 'text/xml'
                 request['Content-Length'] = len(body)
                 request.push(body)
@@ -499,6 +499,7 @@ class SupervisorTransport(xmlrpclib.Transport):
             raise ValueError('Unknown protocol for serverurl %s' % serverurl)
 
     def request(self, host, handler, request_body, verbose=0):
+        request_body = as_bytes(request_body)
         if not self.connection:
             self.connection = self._get_connection()
             self.headers = {

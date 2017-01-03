@@ -62,7 +62,7 @@ class async_chat (asyncore.dispatcher):
 
     def __init__ (self, conn=None, map=None):
         self.ac_in_buffer = ''
-        self.ac_out_buffer = ''
+        self.ac_out_buffer = b''
         self.producer_fifo = fifo()
         asyncore.dispatcher.__init__ (self, conn, map)
 
@@ -112,7 +112,7 @@ class async_chat (asyncore.dispatcher):
                 n = terminator
                 if lb < n:
                     self.collect_incoming_data (self.ac_in_buffer)
-                    self.ac_in_buffer = ''
+                    self.ac_in_buffer = b''
                     self.terminator -= lb
                 else:
                     self.collect_incoming_data (self.ac_in_buffer[:n])
@@ -174,7 +174,7 @@ class async_chat (asyncore.dispatcher):
         # return len(self.ac_out_buffer) or len(self.producer_fifo) or (not self.connected)
         # this is about twice as fast, though not as clear.
         return not (
-                (self.ac_out_buffer == '') and
+                (self.ac_out_buffer == b'') and
                 self.producer_fifo.is_empty() and
                 self.connected
                 )
@@ -196,8 +196,7 @@ class async_chat (asyncore.dispatcher):
                         self.producer_fifo.pop()
                         self.close()
                     return
-                else:
-                    assert isinstance(p, bytes)
+                elif isinstance(p, bytes):
                     self.producer_fifo.pop()
                     self.ac_out_buffer += p
                     return
@@ -231,7 +230,7 @@ class async_chat (asyncore.dispatcher):
     def discard_buffers (self):
         # Emergencies only!
         self.ac_in_buffer = ''
-        self.ac_out_buffer = ''
+        self.ac_out_buffer = b''
         while self.producer_fifo:
             self.producer_fifo.pop()
 

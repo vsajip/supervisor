@@ -262,8 +262,10 @@ class http_request:
                     )
 
     def push (self, thing):
-        assert isinstance(thing, bytes)
-        thing = producers.simple_producer(thing, buffer_size=len(thing))
+        if isinstance(thing, str):
+            import pdb; pdb.set_trace()
+        if isinstance(thing, bytes):
+            thing = producers.simple_producer(thing, buffer_size=len(thing))
         self.outgoing.append(thing)
 
     def response (self, code=200):
@@ -278,10 +280,11 @@ class http_request:
                 'code': code,
                 'message': message,
                 }
+        s = as_bytes(s)
         self['Content-Length'] = len(s)
         self['Content-Type'] = 'text/html'
         # make an error reply
-        self.push (s)
+        self.push(s)
         self.done()
 
     # can also be used for empty replies
